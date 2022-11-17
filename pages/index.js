@@ -1,7 +1,8 @@
+import React from "react";
 import config from "../config.json";
 import styled from "styled-components";
 import { CSSReset } from "../src/components/CSSReset";
-import Menu from "../src/components/Menu";
+import Menu from "../src/components/Menu/Menu";
 import { StyledTimeline } from "../src/components/Timeline";
 
 function HomePage() {
@@ -9,6 +10,7 @@ function HomePage() {
     const estilosDaHomePage = { 
         // backgroundColor: 'red' 
     };
+    const [valorDoFiltro, setValorDoFiltro] = React.useState("");
     return (
         <>
         <CSSReset />
@@ -18,9 +20,11 @@ function HomePage() {
                 flex: 1,
                 // backgroundColor: "red",
             }}>
-                <Menu />
+                <Banner />
+                <Menu valorDoFiltro={valorDoFiltro} setValorDoFiltro={setValorDoFiltro} />
                 <Header></Header>
-                <Timeline playlists={config.playlists}></Timeline>
+                <Timeline searchValue={valorDoFiltro} playlists={config.playlists}></Timeline>
+                <Favoritos aluratubes={config.aluratubes} />
             </div>
         </>
 
@@ -37,6 +41,13 @@ function HomePage() {
 //     );
 //   };
 
+const StyledBanner = styled.div `
+    height: 300px;
+    background-image: url("https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+`
   const StyledHeader = styled.div`
         img {
             width: 80px;
@@ -45,7 +56,6 @@ function HomePage() {
         }
 
         .user-info {
-            margin-top: 50px;
             display: flex;
             align-items: center;
             width: 100%;
@@ -53,6 +63,36 @@ function HomePage() {
             gap: 16px;
         }
   `;
+  const StyledFavoritos = styled.div`
+    margin-left: 30px;
+    h3 {
+        margin-bottom: 20px;
+    }
+    img {
+        border-radius: 50%;
+        width: 100px;
+    }
+    p {
+        text-align: center;
+        font-size: 14px;
+        margin-top: 8px;
+    }
+    .container {
+        display: inline-block;
+    }
+    .perfil {
+        margin-right: 10px;
+    }
+  `
+
+        function Banner() {
+            return (
+                <StyledBanner>
+                    
+                </StyledBanner>
+            )
+        }
+
   function Header() {
     return (
         <StyledHeader>
@@ -72,19 +112,24 @@ function HomePage() {
     );
   };
 
-  function Timeline(props) {
+  function Timeline({searchValue, ...props}) {
     const playlistsNames = Object.keys(props.playlists);
     return (
         <StyledTimeline>
-            {playlistsNames.map((playlistsNames) => {
-                const videos = props.playlists[playlistsNames];
+            {playlistsNames.map((playlistsName) => {
+                const videos = props.playlists[playlistsName];
+                // console.log(videos)
                 return (
-                    <section>
-                        <h2>{playlistsNames}</h2>
+                    <section key={playlistsName}>
+                        <h2>{playlistsName}</h2>
                         <div>
-                            {videos.map((video) => {
+                            {videos.filter((video) => {
+                                const titleNormalized = video.title.toLowerCase();
+                                const searchValueNormalized = searchValue.toLowerCase();
+                                return titleNormalized.includes(searchValueNormalized);
+                            }).map((video) => {
                                 return (
-                                    <a href={video.url}>
+                                    <a key={video.url} href={video.url}>
                                         <img src={video.thumb} />
                                         <span>
                                             {video.title}
@@ -99,3 +144,28 @@ function HomePage() {
         </StyledTimeline>
     );
   };
+
+  function Favoritos(props) {
+    const aluratubes = Object.keys(props.aluratubes)
+    return (
+        <StyledFavoritos>
+            {aluratubes.map((aluratube) => {
+                const perfis = props.aluratubes[aluratube];
+                return(
+                    <section key={aluratube}>
+                        <h3>AluraTubes favoritos</h3>
+                            {perfis.map((perfil) => {
+                                return (
+                                    <div key={perfil} className="container">
+                                        <div  className="perfil">
+                                            <img  src={perfil.img} />
+                                            <p  >{perfil.nome}</p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                    </section>)
+                })}
+        </StyledFavoritos>
+    )
+  }
