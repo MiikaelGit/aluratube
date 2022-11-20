@@ -3,32 +3,37 @@ import config from "../config.json";
 import styled from "styled-components";
 import Menu from "../src/components/Menu/Menu";
 import { StyledTimeline } from "../src/components/Timeline";
-import { videoService } from "../src/services/videoService";
+import { videoServices } from "../src/services/videoService";
 
 
 function HomePage() {
-    const service = videoService();
+    // const service = videoServices.videoService();
     const [valorDoFiltro, setValorDoFiltro] = React.useState("");
     const [playlists, setPlaylists] = React.useState({});
 
     React.useEffect(() => {
-        service
-            .getAllVideos()
-            .then((dados) => {
-                console.log(dados.data);
-                const novasPlaylists = {...config.playlists};
-                dados.data.forEach((video) => {
-                    if(!novasPlaylists[video.playlist]) {
-                        novasPlaylists[video.playlist] = [];
-                    } 
-                    novasPlaylists[video.playlist].push(video);
-                    console.log(video.url);
-                })
-                console.log({playlists})
-                setPlaylists(novasPlaylists);
-                console.log(playlists)
-            })
-        }, [])
+        videoServices.videoService()
+                                    .getAllVideos()
+                                    .then((dados) => {
+                                        console.log(dados.data);
+                                        const novasPlaylists = {...config.playlists};
+                                        dados.data.forEach((video) => {
+                                            if(!novasPlaylists[video.playlist]) {
+                                                novasPlaylists[video.playlist] = [];
+                                            }
+                                            novasPlaylists[video.playlist].push(video);                                            
+                                            console.log(video.url);
+                                        })
+                                        setPlaylists(novasPlaylists);
+                                        console.log(novasPlaylists)
+                                    })
+                                }, [])
+        videoServices.atualiza()
+                                .updateAllVideos()
+                                .on('postgres_changes', { event: '*', schema: '*' }, payload => {
+                                console.log('Change received!', payload)
+                                })
+                                .subscribe()
         
     return (
         <>
