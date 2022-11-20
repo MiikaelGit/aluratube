@@ -1,19 +1,37 @@
 import React from "react";
 import config from "../config.json";
 import styled from "styled-components";
-import { CSSReset } from "../src/components/CSSReset";
 import Menu from "../src/components/Menu/Menu";
 import { StyledTimeline } from "../src/components/Timeline";
+import { videoService } from "../src/services/videoService";
+
 
 function HomePage() {
-    const mensagem = "Bem vindoa ao AluraTube!";
-    const estilosDaHomePage = { 
-        // backgroundColor: 'red' 
-    };
+    const service = videoService();
     const [valorDoFiltro, setValorDoFiltro] = React.useState("");
+    const [playlists, setPlaylists] = React.useState({});
+
+    React.useEffect(() => {
+        service
+            .getAllVideos()
+            .then((dados) => {
+                console.log(dados.data);
+                const novasPlaylists = {...config.playlists};
+                dados.data.forEach((video) => {
+                    if(!novasPlaylists[video.playlist]) {
+                        novasPlaylists[video.playlist] = [];
+                    } 
+                    novasPlaylists[video.playlist].push(video);
+                    console.log(video.url);
+                })
+                console.log({playlists})
+                setPlaylists(novasPlaylists);
+                console.log(playlists)
+            })
+        }, [])
+        
     return (
         <>
-        <CSSReset />
             <div style={{
                 display: "flex",
                 flexDirection: "column",
@@ -23,7 +41,7 @@ function HomePage() {
                 <Banner />
                 <Menu valorDoFiltro={valorDoFiltro} setValorDoFiltro={setValorDoFiltro} />
                 <Header></Header>
-                <Timeline searchValue={valorDoFiltro} playlists={config.playlists}></Timeline>
+                <Timeline searchValue={valorDoFiltro} playlists={playlists}></Timeline>
                 <Favoritos aluratubes={config.aluratubes} />
             </div>
         </>
@@ -42,13 +60,15 @@ function HomePage() {
 //   };
 
 const StyledBanner = styled.div `
-    height: 300px;
+    height: 230px;
     background-image: url("https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80");
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
 `
   const StyledHeader = styled.div`
+        background-color: ${({theme}) => theme.backgroundLevel1};
+
         img {
             width: 80px;
             height: 80px;
@@ -156,8 +176,8 @@ const StyledBanner = styled.div `
                         <h3>AluraTubes favoritos</h3>
                             {perfis.map((perfil) => {
                                 return (
-                                    <div key={perfil} className="container">
-                                        <div  className="perfil">
+                                    <div  className="container">
+                                        <div key={perfil} className="perfil">
                                             <img  src={perfil.img} />
                                             <p  >{perfil.nome}</p>
                                         </div>
